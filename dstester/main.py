@@ -13,6 +13,21 @@ from .netinfo import print_network_info
 from .wizard import build_payload_func, get_test_config
 
 
+def _setup_console() -> None:
+    """保证终端输出不因编码问题崩溃。
+
+    Windows 控制台在中文等区域默认使用 GBK 等非 UTF-8 代码页，无法编码
+    banner 与状态行里的 ⚡🟢 等字符，会导致启动即 raise UnicodeEncodeError。
+    这里把编码错误策略降级为 replace：可编码的正常显示，无法编码的显示为
+    ?，程序不再中断（在 UTF-8 终端下则完全无影响）。
+    """
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(errors="replace")
+        except (AttributeError, ValueError):
+            pass
+
+
 def stop_test(stop_event: threading.Event, ping_mon: PingMonitor, flooders: list) -> None:
     """停止测试并回收线程；不会撤销或修改系统网络配置。"""
     stop_event.set()
@@ -23,6 +38,7 @@ def stop_test(stop_event: threading.Event, ping_mon: PingMonitor, flooders: list
 
 
 def main():
+    _setup_console()
     print_banner()
     print_network_info()
     config = get_test_config()

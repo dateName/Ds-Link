@@ -40,7 +40,7 @@ def get_available_interfaces() -> list:
                    "| ConvertTo-Json -Compress"]
         try:
             result = subprocess.run(command, capture_output=True, text=True,
-                                    timeout=3, check=False)
+                                    errors="replace", timeout=3, check=False)
             data = json.loads(result.stdout) if result.stdout.strip() else []
             if isinstance(data, dict):
                 data = [data]
@@ -54,7 +54,7 @@ def get_available_interfaces() -> list:
         if not interfaces:
             try:
                 result = subprocess.run(["ipconfig", "/all"], capture_output=True,
-                                        text=True, timeout=3, check=False)
+                                        text=True, errors="replace", timeout=3, check=False)
                 interface_name = "Windows 网卡"
                 for line in result.stdout.splitlines():
                     stripped = line.strip()
@@ -69,8 +69,8 @@ def get_available_interfaces() -> list:
     else:
         try:
             result = subprocess.run(["ip", "-o", "-4", "addr", "show"],
-                                    capture_output=True, text=True, timeout=3,
-                                    check=False)
+                                    capture_output=True, text=True, errors="replace",
+                                    timeout=3, check=False)
             for line in result.stdout.splitlines():
                 match = re.search(r"^\d+:\s+(\S+).*?inet\s+(\d+\.\d+\.\d+\.\d+)/", line)
                 if match and not match.group(2).startswith("127."):
@@ -103,7 +103,7 @@ def get_default_gateway() -> str:
     for command in commands:
         try:
             result = subprocess.run(command, capture_output=True, text=True,
-                                    timeout=3, check=False)
+                                    errors="replace", timeout=3, check=False)
         except (OSError, subprocess.SubprocessError):
             continue
         if command[0] == "ip" and result.returncode == 0:
@@ -128,7 +128,7 @@ def get_dns_servers() -> list:
                        "Get-DnsClientServerAddress -AddressFamily IPv4 "
                        "| Select-Object -ExpandProperty ServerAddresses"]
             result = subprocess.run(command, capture_output=True, text=True,
-                                    timeout=3, check=False)
+                                    errors="replace", timeout=3, check=False)
             for line in result.stdout.splitlines():
                 address = _first_ipv4(line)
                 if address != "未检测到" and address not in servers:

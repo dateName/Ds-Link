@@ -112,7 +112,8 @@ class IcmpPing:
                 cmd = ["ping", "-n", "1", "-w", str(int(self.timeout * 1000)), self.host]
             else:
                 cmd = ["ping", "-c", "1", "-W", str(int(self.timeout)), self.host]
-            res = subprocess.run(cmd, capture_output=True, text=True, timeout=self.timeout + 1)
+            res = subprocess.run(cmd, capture_output=True, text=True,
+                                 errors="replace", timeout=self.timeout + 1)
             if res.returncode == 0:
                 for line in res.stdout.splitlines():
                     if "time=" in line.lower():
